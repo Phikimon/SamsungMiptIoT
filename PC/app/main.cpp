@@ -35,6 +35,7 @@ const char NUM_RETRY_ATTEMPTS = 5;
 
 PAYLOAD1 = "set 16 1";
 PAYLOAD2 = "set 16 0";
+const string TOPIC {"devices/lora/"+pump.ID+"/gpio"};
 
 const auto TIMEOUT = std::chrono::seconds(10);
 
@@ -283,8 +284,6 @@ int main(int argc, const char* argv[]) {
 	cout << "  ...OK" << endl;
 
 	try {
-		char topic_pump_on[]="Pump is on";
-		char topic_pump_off[]="Pump is off"
 		cout << "\nConnecting..." << endl;
 		mqtt::token_ptr conntok = client.connect(conopts);
 		cout << "Waiting for the connection..." << endl;
@@ -295,7 +294,7 @@ int main(int argc, const char* argv[]) {
 
 		if (pump.on) {
 			cout << "\nSending message..." << endl;
-			mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_on, PAYLOAD1);
+			mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, PAYLOAD1);
 			pubmsg->set_qos(QOS);
 			client.publish(pubmsg)->wait_for(TIMEOUT);
 			cout << "  ...OK" << endl;
@@ -308,7 +307,7 @@ int main(int argc, const char* argv[]) {
 		}
 		if  (pump.on==false) {
 			cout << "\nSending message..." << endl;
-			mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_off, PAYLOAD2);
+			mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, PAYLOAD2);
 			pubmsg->set_qos(QOS);
 			client.publish(pubmsg)->wait_for(TIMEOUT);
 			cout << "  ...OK" << endl;
