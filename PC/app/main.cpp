@@ -33,6 +33,9 @@ const std::string TOPIC { "devices/lora/#" };
 const int QOS = 1;
 const char NUM_RETRY_ATTEMPTS = 5;
 
+PAYLOAD1 = "set 16 1";
+PAYLOAD2 = "set 16 0";
+
 const auto TIMEOUT = std::chrono::seconds(10);
 
 // Callbacks for the success or failures of requested actions.
@@ -280,8 +283,8 @@ int main(int argc, const char* argv[]) {
 	cout << "  ...OK" << endl;
 
 	try {
-		PAYLOAD1 = "set 16 1";
-		topic_pump_on="Pump is on"
+		char topic_pump_on[]="Pump is on";
+		char topic_pump_off[]="Pump is off"
 		cout << "\nConnecting..." << endl;
 		mqtt::token_ptr conntok = client.connect(conopts);
 		cout << "Waiting for the connection..." << endl;
@@ -290,15 +293,34 @@ int main(int argc, const char* argv[]) {
 
 		// First use a message pointer.
 
-		cout << "\nSending message..." << endl;
-		mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_on, PAYLOAD1);
-		pubmsg->set_qos(QOS);
-		client.publish(pubmsg)->wait_for(TIMEOUT);
-		cout << "  ...OK" << endl;
-	}
+		if (pump.on) {
+			cout << "\nSending message..." << endl;
+			mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_on, PAYLOAD1);
+			pubmsg->set_qos(QOS);
+			client.publish(pubmsg)->wait_for(TIMEOUT);
+			cout << "  ...OK" << endl;
+
+			// Disconnect
+			cout << "\nDisconnecting..." << endl;
+			conntok = client.disconnect();
+			conntok->wait();
+			cout << "  ...OK" << endl;
+		}
+		if  (pump.on==false) {
+			cout << "\nSending message..." << endl;
+			mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_off, PAYLOAD2);
+			pubmsg->set_qos(QOS);
+			client.publish(pubmsg)->wait_for(TIMEOUT);
+			cout << "  ...OK" << endl;
+
+			// Disconnect
+			cout << "\nDisconnecting..." << endl;
+			conntok = client.disconnect();
+			conntok->wait();
+			cout << "  ...OK" << endl;
+		}
 		
-    
-    
+    }
     
     
 
