@@ -8,10 +8,10 @@
 #include <thread>
 #include <vector>
 #include <regex>
-
 #include <fstream>
 
-#include "mqtt/async_client.h"
+#include <mqtt/async_client.h>
+#include <mqtt/string_collection.h>
 
 #include <json/json.h>
 #include <json/value.h>
@@ -37,7 +37,7 @@ const char NUM_RETRY_ATTEMPTS = 5;
 
 class ActionListener : public virtual mqtt::iaction_listener
 {
-    public:
+//    public:
         ActionListener(const std::string &name) :
                 _name(name) {
         }
@@ -64,15 +64,15 @@ class ActionListener : public virtual mqtt::iaction_listener
         }
 };
 
-class Callback : public virtual mqtt::callback,
+class SubCallback : public virtual mqtt::callback,
         public virtual mqtt::iaction_listener
 {
     public:
-        Callback(mqtt::async_client &cli_cl, mqtt::connect_options &connOpts) :
+        SubCallback(mqtt::async_client &cli_cl, mqtt::connect_options &connOpts,
+        		TopicParams &params) :
                 nretry(0), cli(cli_cl), connOpts(connOpts),
-                subListener("Subscription") {
-					
-        }
+                subListener("Subscription"), topic_params(params) {
+		}
 
     private:
         // Counter for the number of connection retries
@@ -83,6 +83,9 @@ class Callback : public virtual mqtt::callback,
         mqtt::connect_options connOpts;
         ActionListener subListener;
 	
+        // Topics
+        TopicParams &topic_params;
+
 		// Данные от датчиков + данные от конфигурационного файла
 		Pump pump_data;
 
@@ -113,11 +116,20 @@ class Callback : public virtual mqtt::callback,
         // Re-connection success
         void on_success(const mqtt::token& tok) override {
             std::cout << "Connection success" << std::endl;
-            std::cout << "Subscribing to topic '" << TOPIC << "'\n"
-                    << "\tfor client " << CLIENT_ID << " using QoS" << QOS
-                    << "\n" << "\nPress Q<Enter> to quit\n" << std::endl;
 
-            cli.subscribe(TOPIC, QOS, nullptr, subListener);
+            std::string target_device_eui = topic_params.getParams()[0];
+            std::vector <std::string> topics(topic_params.getParams()[1]);
+
+            for (size_t i; i++; i<topics.size()) {
+            	topics[i] = "devices/lora/" + target_device_eui + "/" +
+					topics[i];
+            }
+
+            mqtt::string_collection sensors(topics);
+            cli.subscribe(sensors, QOS, nullptr, subListener);
+            for (auto str: topics) {
+                std::cout << "Subscribing to topic '" << str << "'\n";
+            }
         }
 
         // Callback for when the connection is lost.
@@ -138,14 +150,14 @@ class Callback : public virtual mqtt::callback,
 			config_file("config.json", std::ifstream::binary);
 			config_file >> root;
 			if(root["watering"]["mode"].asString() == "manual") {
-				pump.mode = MANUAL;
+				pump.mode = PUMP_MODE::MANUAL;
 					if(root["watering"]["mode"]["manual"].asString() == "on")
 						pump.manual_state = ON;
 					else
 						pump.manual_state = OFF;
 			}
 			else
-				pump.mode = AUTO;
+				pump.mode = PUMP_MODE::AUTO;
 			pump.frequency = root["watering"]["frequency"].asInt();
 			pump.hum_max = root["watering"]["max_ok"].asInt();
 			pump.hum_min = root["watering"]["min_ok"].asInt();
@@ -228,12 +240,12 @@ int main(int argc, const char* argv[]) {
     mqtt::connect_options connOpts;
     connOpts.set_keep_alive_interval(20);
     connOpts.set_clean_session(true);
-
+    connOpts
     std::cout << mqtt_conn_params->getServerAddr();
 
     mqtt::async_client client(mqtt_conn_params->getServerAddr(), CLIENT_ID);
 
-    Callback cb(client, connOpts);
+    SubCallback cb(client, connOpts, mqtt_topic_params);
     client.set_callback(cb);
 
     // Start the connection.

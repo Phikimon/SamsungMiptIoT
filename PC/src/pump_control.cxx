@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include <time.h>
+#include <ctime>
 
 time_t prog_start_time;
 time_t current_time;
@@ -37,9 +37,9 @@ public:
 };
 
 Pump :: Pump() {
-	mode = MANUAL;
-	on = off;
-	manual_state = OFF;
+	mode = PUMP_MODE::MANUAL;
+	on = PUMP_STATE::OFF;
+	manual_state = PUMP_STATE::OFF;
 	humidity = 0;
 	frequency = 0;
 	poliv_qt = 0;
