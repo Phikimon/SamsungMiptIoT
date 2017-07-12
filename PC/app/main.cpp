@@ -33,6 +33,12 @@ const std::string TOPIC { "devices/lora/#" };
 const int QOS = 1;
 const char NUM_RETRY_ATTEMPTS = 5;
 
+PAYLOAD1 = "set 16 1";
+PAYLOAD2 = "set 16 0";
+const string TOPIC {"devices/lora/"+pump.ID+"/gpio"};
+
+const auto TIMEOUT = std::chrono::seconds(10);
+
 // Callbacks for the success or failures of requested actions.
 
 class ActionListener : public virtual mqtt::iaction_listener
@@ -146,21 +152,30 @@ class SubCallback : public virtual mqtt::callback,
 
         // Callback for when a message arrives.
         void message_arrived(mqtt::const_message_ptr msg) override {
-			std::ifstream;
-			config_file("config.json", std::ifstream::binary);
-			config_file >> root;
-			if(root["watering"]["mode"].asString() == "manual") {
-				pump.mode = PUMP_MODE::MANUAL;
-					if(root["watering"]["mode"]["manual"].asString() == "on")
-						pump.manual_state = ON;
-					else
-						pump.manual_state = OFF;
+			Json::Value root_config;
+			Json::Value root_devices;
+			
+			std::ifstream config_file("config.json", std::ifstream::binary); 	//Адресс уточнить
+			config_file >> root_config;
+			if(root_config["watering"]["mode"].asString() == "manual") {
+				pump.mode = MANUAL;
+				if(root_config["watering"]["mode"]["manual"].asString() == "on")
+					pump.manual_state = ON;
+				else
+					pump.manual_state = OFF;
 			}
 			else
-				pump.mode = PUMP_MODE::AUTO;
-			pump.frequency = root["watering"]["frequency"].asInt();
-			pump.hum_max = root["watering"]["max_ok"].asInt();
-			pump.hum_min = root["watering"]["min_ok"].asInt();
+				pump.mode = AUTO;
+			pump.frequency = root_config["watering"]["frequency"].asInt();
+			pump.hum_max = root_config["watering"]["max_ok"].asInt();
+			pump.hum_min = root_config["watering"]["min_ok"].asInt();
+			
+			std::ifstream dev_file("dev.json", std::ifstream::binary);	 //Адресс уточнить
+			config_file >> root_devices;
+			
+			if (root_devices["map"]["controller"]["name"]=="pump") {
+				pump.ID = root_devices["map"]["controller"]["ID"].asString();
+			}
 			
             std::cout << "Message arrived" << std::endl;
             std::cout << "\ttopic: '" << msg->get_topic() << "'" << std::endl;
@@ -173,7 +188,7 @@ class SubCallback : public virtual mqtt::callback,
             std::string lora_deveui = topic_strings[2];
             std::string device = topic_strings[3];
 
-            Json::Value root;
+           
             Json::Reader json_reader;
 
             if (device == "adc") {
@@ -259,6 +274,64 @@ int main(int argc, const char* argv[]) {
                 << mqtt_conn_params->getServerAddr() << "'" << std::endl;
         return 1;
     }
+    
+    /* Sending part? */
+    
+    string	address  = "10.55.192.151",
+			clientID = pump.ID;
+
+	cout << "Initializing for server '" << address << "'..." << endl;
+	mqtt::async_client client(address, clientID);
+
+	callback cb;
+	client.set_callback(cb);
+
+	/*mqtt::connect_options conopts;
+	mqtt::message willmsg(TOPIC, LWT_PAYLOAD, 1, true);
+	mqtt::will_options will(willmsg);
+	conopts.set_will(will);*/
+
+	cout << "  ...OK" << endl;
+
+	try {
+		cout << "\nConnecting..." << endl;
+		mqtt::token_ptr conntok = client.connect(conopts);
+		cout << "Waiting for the connection..." << endl;
+		conntok->wait();
+		cout << "  ...OK" << endl;
+
+		// First use a message pointer.
+
+		if (pump.on) {
+			cout << "\nSending message..." << endl;
+			mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, PAYLOAD1);
+			pubmsg->set_qos(QOS);
+			client.publish(pubmsg)->wait_for(TIMEOUT);
+			cout << "  ...OK" << endl;
+
+			// Disconnect
+			cout << "\nDisconnecting..." << endl;
+			conntok = client.disconnect();
+			conntok->wait();
+			cout << "  ...OK" << endl;
+		}
+		if  (pump.on==false) {
+			cout << "\nSending message..." << endl;
+			mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, PAYLOAD2);
+			pubmsg->set_qos(QOS);
+			client.publish(pubmsg)->wait_for(TIMEOUT);
+			cout << "  ...OK" << endl;
+
+			// Disconnect
+			cout << "\nDisconnecting..." << endl;
+			conntok = client.disconnect();
+			conntok->wait();
+			cout << "  ...OK" << endl;
+		}
+		
+    }
+    
+    
 
 //    sf::Window window;
 //    window.create(sf::VideoMode(800, 600), "My window");
