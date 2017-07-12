@@ -19,9 +19,9 @@ class Plot
 {
     public:
 
-        Point max_;
+        //Point max_;
         Point data_ [SIZE_OF_DATA];
-        char  name_ [SIZE_OF_NAME];
+        //char  name_ [SIZE_OF_NAME];
 
         Plot (Point max);
         ~Plot ();

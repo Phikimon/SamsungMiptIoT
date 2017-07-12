@@ -12,9 +12,7 @@ Plot::~Plot () {}
 
 void Plot::PlotMaker ()
 {
-    sf::RenderWindow window (sf::VideoMode (800, 600), "Plot");
-
-    bool indicator = true;
+    sf::RenderWindow window (sf::VideoMode (600, 400), "Plot");
 
     while (window.isOpen ())
     {
@@ -26,39 +24,51 @@ void Plot::PlotMaker ()
                 window.close ();
         }
 
-        if (indicator)
+    	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         {
-            window.clear (sf::Color::White);
-
-            for (int i = 0; i < MAX_VAL; i++)
-            {
-                sf::Vertex line [] =
-                {
-                    sf::Vertex (sf::Vector2f
-                        (data_[i].x,   data_[i].y)),
-                    sf::Vertex (sf::Vector2f
-                        (data_[i+1].x, data_[i+1].y))
-                };
-
-                window.draw (line, 2, sf::Lines);
-            }
-            indicator = false;
-            window.display();
+            window.close ();
         }
+
+        window.clear (sf::Color::Black);
+
+        for (int i = 0; i < MAX_VAL; i++)
+        {
+            sf::Vertex line [] =
+            {
+                sf::Vertex (sf::Vector2f (data_[i].x   * 10, data_[i].y   * 10)),
+                sf::Vertex (sf::Vector2f (data_[i+1].x * 10, data_[i+1].y * 10))
+            };
+
+            window.draw (line, 2, sf::Lines);
+        }
+        window.display();
     }
 }
 
 int main ()
 {
-    Point max = {MAX_X, MAX_Y};
+    //Point max = {MAX_X, MAX_Y};
     Plot test (max);
+
+    for (int i = 0; i < 10; i++) //test data
+    {
+        test.data_[i].x = 10 + i;
+        test.data_[i].y = 10 + i;
+    }
+
+    for (int i = 10; i <= MAX_VAL; i++) //test data
+    {
+        test.data_[i].x = 20 + i;
+        test.data_[i].y = 10 + i;
+    }
+
     test.PlotMaker ();
 
-    for (int i = 0; i < 10; i++)
+    /*for (int i = 0; i < 30; i++)
     {
         printf ("data_[%d].x = %lg || data_[%d].y = %lg\n",
              i, test.data_[i].x, i, test.data_[i].y);
-    }
+    }*/
 
     return 0;
 }
