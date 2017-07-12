@@ -7,7 +7,15 @@
         "date": "2017-02-21T13:45:29"
       },
       "modules": [
-
+        {
+          "name": "gpio",
+          "data": {
+            "names": [
+              "lamp",
+              "pump"
+            ]
+          }
+        },
         {
           "name": "opt3001",
           "data": {
