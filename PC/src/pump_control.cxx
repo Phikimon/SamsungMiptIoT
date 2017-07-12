@@ -40,7 +40,7 @@ class Pump
 
 Pump::Pump() {
 	mode = PUMP_MODE::MANUAL;
-	on = false
+	on = false;
 	manual_state = PUMP_STATE::OFF;
 	humidity = 0;
 	frequency = 0;
@@ -54,15 +54,15 @@ Pump::~Pump() {
 
 void Pump::pump_control() {
 	
-		if (pump.mode == PUMP_MODE::AUTO) {
-			pump.auto_poliv () ;
+		if (mode == PUMP_MODE::AUTO) {
+			auto_poliv() ;
 		}
-		if (pump.mode == PUMP_MODE::MANUAL) {
-			 pump.manual_poliv (); 
+		if (mode == PUMP_MODE::MANUAL) {
+			manual_poliv();
 		}
 }
 
-void Pump :: auto_poliv () {
+void Pump::auto_poliv() {
 	
 	current_time = time(NULL);
 	if((current_time - prog_start_time - poliv_qt * (DAY / frequency)) > DAY/frequency) {
