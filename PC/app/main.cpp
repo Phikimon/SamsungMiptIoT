@@ -33,6 +33,8 @@ const std::string TOPIC { "devices/lora/#" };
 const int QOS = 1;
 const char NUM_RETRY_ATTEMPTS = 5;
 
+const auto TIMEOUT = std::chrono::seconds(10);
+
 // Callbacks for the success or failures of requested actions.
 
 class ActionListener : public virtual mqtt::iaction_listener
@@ -258,6 +260,47 @@ int main(int argc, const char* argv[]) {
                 << mqtt_conn_params->getServerAddr() << "'" << std::endl;
         return 1;
     }
+    
+    /* Sending part? */
+    
+    string	address  = "10.55.192.151",
+			clientID = pump.ID;
+
+	cout << "Initializing for server '" << address << "'..." << endl;
+	mqtt::async_client client(address, clientID);
+
+	callback cb;
+	client.set_callback(cb);
+
+	/*mqtt::connect_options conopts;
+	mqtt::message willmsg(TOPIC, LWT_PAYLOAD, 1, true);
+	mqtt::will_options will(willmsg);
+	conopts.set_will(will);*/
+
+	cout << "  ...OK" << endl;
+
+	try {
+		PAYLOAD1 = "set 16 1";
+		topic_pump_on="Pump is on"
+		cout << "\nConnecting..." << endl;
+		mqtt::token_ptr conntok = client.connect(conopts);
+		cout << "Waiting for the connection..." << endl;
+		conntok->wait();
+		cout << "  ...OK" << endl;
+
+		// First use a message pointer.
+
+		cout << "\nSending message..." << endl;
+		mqtt::message_ptr pubmsg = mqtt::make_message(topic_pump_on, PAYLOAD1);
+		pubmsg->set_qos(QOS);
+		client.publish(pubmsg)->wait_for(TIMEOUT);
+		cout << "  ...OK" << endl;
+	}
+		
+    
+    
+    
+    
 
 //    sf::Window window;
 //    window.create(sf::VideoMode(800, 600), "My window");
