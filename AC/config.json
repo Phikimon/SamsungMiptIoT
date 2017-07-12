@@ -1,0 +1,31 @@
+{
+  "connection": {
+    "status": "on"
+  },
+  "watering": {
+    "mode": "manual",
+    "manual": {
+        "state": "off"
+    },
+    "sensor_period": 4,
+    "pin": 18,
+    "frequency": 2,
+    "humidity": {
+      "min_ok": 1,
+      "max_ok": 100
+    }
+  },
+  "lighting": {
+    "mode": "auto",
+    "manual": {
+        "state": "not set"
+    },
+    "sensor_period": 1,
+    "pin": 17,
+    "daylight": "16",
+    "luminocity": {
+      "min_ok": 1,
+      "max_ok": 100
+    }
+  }
+}

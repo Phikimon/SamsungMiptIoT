@@ -1,0 +1,61 @@
+{
+  "devices": [
+    {
+      "ID": "807B8590200001E4",
+      "connection": {
+        "status": true,
+        "date": "2017-02-21T13:45:29"
+      },
+      "modules": [
+
+        {
+          "name": "opt3001",
+          "data": {
+            "names": [
+              "luminocity"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "ID": "807B859020000BE",
+      "connection": {
+        "status": false,
+        "date": "2017-02-21T15:45:29"
+      },
+      "modules": [
+        {
+          "name": "adc",
+          "data": {
+            "names": [
+              "humidity"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "map": [
+    {
+      "controller": {
+        "name": "pump",
+        "ID": "807B859020000177"
+      },
+      "sensor": {
+        "name": "humidity",
+        "ID": "807B859020000BE"
+      }
+    },
+    {
+      "controller": {
+        "name": "lamp",
+        "ID": "807B859020000177"
+      },
+      "sensor": {
+        "name": "luminocity",
+        "ID": "807B859020000177"
+      }
+    }
+  ]
+}
