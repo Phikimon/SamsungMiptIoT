@@ -1,11 +1,11 @@
-
 #include <iostream>
 #include <time.h>
 
 time_t prog_start_time;
 time_t current_time;
-//clock_t time_start;
+
 enum { DAY = 86400};
+
 enum PUMP_MODE {
 	MANUAL,
 	AUTO
@@ -20,11 +20,9 @@ class Pump {
 public:
 	Pump();
 	~Pump();
-	
 	void auto_poliv();
 	void manual_poliv();
 	void pump_control();
-	
 	int mode;
 	bool on;
 	int manual_state;
@@ -34,19 +32,20 @@ public:
 	int hum_max;
 	int hum_min;
 	time_t duration;
+	char ID; 
 };
 
 Pump :: Pump() {
 	mode = MANUAL;
-	on = off;
+	on = false;
 	manual_state = OFF;
 	humidity = 0;
 	frequency = 0;
 	poliv_qt = 0;
 	hum_min = hum_max = 0;
-	duration = 1000;
-
+	duration = 60 * 5;
 }
+
 Pump :: ~Pump() {
 }
 
@@ -65,7 +64,9 @@ void Pump :: auto_poliv () {
 	current_time = time(NULL);
 	if((current_time - prog_start_time - poliv_qt * (DAY / frequency)) > DAY/frequency) {
 		time_t time_start = time(NULL);
+		
 		//on pump
+		
 		on = true;
 		while(1) {
 			current_time = time(NULL);
@@ -81,7 +82,6 @@ void Pump :: auto_poliv () {
 			}
 		}
 		poliv_qt++;
-		//if (poliv_q  > frequency) poliv_q = 0;
 	}
 	
 	if (humidity < hum_min) {

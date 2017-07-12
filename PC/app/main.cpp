@@ -134,21 +134,32 @@ class Callback : public virtual mqtt::callback,
 
         // Callback for when a message arrives.
         void message_arrived(mqtt::const_message_ptr msg) override {
-			std::ifstream;
-			config_file("config.json", std::ifstream::binary);
-			config_file >> root;
-			if(root["watering"]["mode"].asString() == "manual") {
+			
+			Json::Value root_config;
+			Json::Value root_devices;
+			
+			std::ifstream config_file("config.json", std::ifstream::binary); 	//Адресс уточнить
+			config_file >> root_config;
+			if(root_config["watering"]["mode"].asString() == "manual") {
 				pump.mode = MANUAL;
-					if(root["watering"]["mode"]["manual"].asString() == "on")
-						pump.manual_state = ON;
-					else
-						pump.manual_state = OFF;
+				if(root_config["watering"]["mode"]["manual"].asString() == "on")
+					pump.manual_state = ON;
+				else
+					pump.manual_state = OFF;
 			}
 			else
 				pump.mode = AUTO;
-			pump.frequency = root["watering"]["frequency"].asInt();
-			pump.hum_max = root["watering"]["max_ok"].asInt();
-			pump.hum_min = root["watering"]["min_ok"].asInt();
+			pump.frequency = root_config["watering"]["frequency"].asInt();
+			pump.hum_max = root_config["watering"]["max_ok"].asInt();
+			pump.hum_min = root_config["watering"]["min_ok"].asInt();
+			
+			std::ifstream dev_file("dev.json", std::ifstream::binary);	 //Адресс уточнить
+			config_file >> root_devices;
+			
+			if (root_devices["map"]["controller"]["name"]=="pump") {
+				pump.ID = root_devices["map"]["controller"]["ID"].asString();
+			}
+			
 			
             std::cout << "Message arrived" << std::endl;
             std::cout << "\ttopic: '" << msg->get_topic() << "'" << std::endl;
@@ -161,7 +172,7 @@ class Callback : public virtual mqtt::callback,
             std::string lora_deveui = topic_strings[2];
             std::string device = topic_strings[3];
 
-            Json::Value root;
+           
             Json::Reader json_reader;
 
             if (device == "adc") {
